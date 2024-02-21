@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 export default function PickACharacter({ images }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -26,10 +27,11 @@ export default function PickACharacter({ images }) {
     });
   };
 
-  const printdata = () => {
-    console.log(userData);
+  const createRoom = () => {
+    axios
+      .post("http://localhost:2000/create-room")
+      .then((resp) => console.log(resp));
   };
-
   return (
     <div>
       <h4 className="text-second text-center text-3xl font-bold leading-9 font-poppins ml-9 mr-9 mt-16 mb-6">
@@ -60,7 +62,7 @@ export default function PickACharacter({ images }) {
             pathname: "/WaitingRoom",
           }}
           state={{ userData: userData }}
-          //onClick={printdata}
+          onClick={createRoom}
           className="flex p-3 justify-center items-center   text-black text-base font-normal leading-7 font-inter rounded-full bg-third w-[100%] mt-12 "
         >
           Create Room!
