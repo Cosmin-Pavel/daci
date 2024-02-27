@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 
 export default function JoinRoom({ images }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const roomId = queryParams.get("roomId");
 
   const nextImage = () => {
     const newIndex =
@@ -25,6 +29,18 @@ export default function JoinRoom({ images }) {
       ...userData,
       [event.target.name]: event.target.value,
     });
+  };
+  const addToRoom = async () => {
+    try {
+      console.log(roomId);
+      console.log(userData);
+      const response = await axios.post("http://localhost:2000/api/addToRoom", {
+        roomId,
+        userData,
+      });
+    } catch (error) {
+      console.error("Error adding player:", error);
+    }
   };
 
   return (
@@ -52,11 +68,12 @@ export default function JoinRoom({ images }) {
           required
           onChange={handleInputChange}
         />
-        <Link
-          to={{
-            pathname: "/WaitingRoom",
-          }}
-          state={{ userData: userData }}
+        <button
+          //   to={{
+          //     pathname: "/WaitingRoom",
+          //   }}
+          //   state={{ roomId: roomId }}
+          onClick={addToRoom}
           className="flex p-3 justify-center items-center   text-black text-base font-normal leading-7 font-inter rounded-full bg-third w-[100%] mt-12 "
         >
           Join Room!
@@ -65,7 +82,7 @@ export default function JoinRoom({ images }) {
             alt="!"
             className=" p-[9px] bg-forth rounded-full ml-3"
           />
-        </Link>
+        </button>
       </div>
     </div>
   );

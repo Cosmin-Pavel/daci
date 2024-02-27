@@ -5,7 +5,6 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const mongoString = process.env.DATABASE_URL;
 const routes = require("./routes/routes");
-const bodyParser = require("body-parser");
 
 mongoose.connect(mongoString);
 const database = mongoose.connection;
@@ -19,12 +18,12 @@ database.once("connected", () => {
 });
 
 const app = express();
-const PORT = process.env.PORT || 2000;
-
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/api", routes);
+
+const PORT = process.env.PORT || 2000;
 
 // Endpoint for the initial route
 app.get("/", (req, res) => {

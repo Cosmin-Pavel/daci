@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import { io } from "socket.io-client";
 import { useLocation } from "react-router-dom";
 
 export default function WaitingRoom({ images }) {
@@ -7,6 +7,16 @@ export default function WaitingRoom({ images }) {
   const userData = location.state.userData;
   const roomId = location.state.roomId;
   const [playersArray, setPlayersArray] = useState([userData]);
+
+  useEffect(() => {
+    const socket = io("http://localhost:3001");
+    socket.on("connect", () => {
+      console.log("User connected to the socket server");
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const generateLink = () => {
     const link = `localhost:3000/JoinRoom?roomId=${roomId}`;

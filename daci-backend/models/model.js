@@ -1,16 +1,5 @@
 const mongoose = require("mongoose");
 
-const dataSchema = new mongoose.Schema({
-  id: {
-    required: true,
-    type: String,
-  },
-  players: {
-    required: true,
-    type: Array,
-  },
-});
-
 const roomSchema = new mongoose.Schema({
   roomId: {
     type: String,
@@ -25,7 +14,10 @@ const roomSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  players: {
+    required: true,
+    type: Array,
+  },
 });
 
-module.exports = mongoose.model("Data", dataSchema);
-module.exports = mongoose.model("Room", roomSchema);
+module.exports.Room = mongoose.model("Room", roomSchema);

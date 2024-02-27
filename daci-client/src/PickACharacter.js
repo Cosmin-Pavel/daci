@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import axios from "axios";
 
 export default function PickACharacter({ images }) {
@@ -43,9 +44,13 @@ export default function PickACharacter({ images }) {
     }
   };
 
-  useEffect(() => {
-    console.log(roomId);
-  }, [roomId]);
+  if (roomId !== "")
+    return (
+      <Navigate
+        to="/WaitingRoom"
+        state={{ userData: userData, roomId: roomId }}
+      />
+    );
 
   return (
     <div>
@@ -74,10 +79,10 @@ export default function PickACharacter({ images }) {
         />
         <Link
           onClick={createRoom}
-          to={{
-            pathname: "/WaitingRoom",
-          }}
-          state={{ userData: userData, roomId: roomId }}
+          // to={{
+          //   pathname: "/WaitingRoom",
+          // }}
+          // state={{ userData: userData, roomId: roomId }}
           className="flex p-3 justify-center items-center   text-black text-base font-normal leading-7 font-inter rounded-full bg-third w-[100%] mt-12 "
         >
           Create Room!
