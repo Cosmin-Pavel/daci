@@ -1,12 +1,12 @@
 import React from "react";
 import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
+import WaitingRoom from "./WaitingRoom";
 import PickACharacter from "./PickACharacter";
 import WelcomePage from "./WelcomePage";
+import JoinRoom from "./JoinRoom";
 import "./App.css";
 import "./index.css";
-import WaitingRoom from "./WaitingRoom";
 
 function App() {
   const images = ["/character-1.png", "/favicon.ico", "/refresh.png"];
@@ -22,6 +22,10 @@ function App() {
     {
       path: "/WaitingRoom",
       element: <WaitingRoom images={images} />,
+    },
+    {
+      path: "/JoinRoom",
+      element: <JoinRoom images={images} />,
     },
   ]);
 

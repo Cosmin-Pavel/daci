@@ -22,19 +22,13 @@ const app = express();
 const PORT = process.env.PORT || 2000;
 
 app.use(cors());
-app.use(bodyParser());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use("/api", routes);
 
 // Endpoint for the initial route
 app.get("/", (req, res) => {
   res.send("Welcome to the home page!!");
-});
-
-app.post("/create-room", async (req, res) => {
-  let collection = await db.collection("sessions");
-  let results = await collection.find({}).limit(50).toArray();
-  res.send(results).status(200);
-  console.log(results);
 });
 
 // Start the server

@@ -11,4 +11,21 @@ const dataSchema = new mongoose.Schema({
   },
 });
 
+const roomSchema = new mongoose.Schema({
+  roomId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  creatorUsername: {
+    type: String,
+    required: true,
+  },
+  creatorImageIndex: {
+    type: String,
+    required: true,
+  },
+});
+
 module.exports = mongoose.model("Data", dataSchema);
+module.exports = mongoose.model("Room", roomSchema);

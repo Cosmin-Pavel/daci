@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
 import axios from "axios";
 
-export default function PickACharacter({ images }) {
+export default function JoinRoom({ images }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [roomId, setRoomId] = useState("");
 
   const nextImage = () => {
     const newIndex =
@@ -29,28 +27,10 @@ export default function PickACharacter({ images }) {
     });
   };
 
-  const createRoom = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:2000/api/create-room",
-        {
-          userData,
-        }
-      );
-      setRoomId(response.data.roomId);
-    } catch (error) {
-      console.error("Error creating room:", error);
-    }
-  };
-
-  useEffect(() => {
-    console.log(roomId);
-  }, [roomId]);
-
   return (
     <div>
       <h4 className="text-second text-center text-3xl font-bold leading-9 font-poppins ml-9 mr-9 mt-16 mb-6">
-        But first...
+        Welcome!
       </h4>
       <p className="text-second text-center text-sm font-normal leading-5 font-inter ml-9 mr-9 pl-2 pr-2">
         Pick a character and choose a username.
@@ -73,14 +53,13 @@ export default function PickACharacter({ images }) {
           onChange={handleInputChange}
         />
         <Link
-          onClick={createRoom}
           to={{
             pathname: "/WaitingRoom",
           }}
-          state={{ userData: userData, roomId: roomId }}
+          state={{ userData: userData }}
           className="flex p-3 justify-center items-center   text-black text-base font-normal leading-7 font-inter rounded-full bg-third w-[100%] mt-12 "
         >
-          Create Room!
+          Join Room!
           <img
             src="/arrow-right.png"
             alt="!"

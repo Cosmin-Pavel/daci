@@ -18,6 +18,27 @@ router.post("/post", async (req, res) => {
   }
 });
 
+router.post("/create-room", async (req, res) => {
+  const data = new Model({
+    roomId: generateRoomID(),
+    creatorUsername: req.body.userData.username,
+    creatorImageIndex: req.body.userData.imageIndex,
+  });
+  try {
+    const dataToSave = await data.save();
+    res.status(200).json(dataToSave);
+    res = data.roomId;
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+function generateRoomID() {
+  const currentDate = new Date();
+  const timestamp = currentDate.getTime();
+  return timestamp;
+}
+
 //Get all Method
 router.get("/getAll", (req, res) => {
   res.send("Get All API");
