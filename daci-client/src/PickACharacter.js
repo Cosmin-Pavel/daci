@@ -45,12 +45,7 @@ export default function PickACharacter({ images }) {
   };
 
   if (roomId !== "")
-    return (
-      <Navigate
-        to="/WaitingRoom"
-        state={{ userData: userData, roomId: roomId }}
-      />
-    );
+    return <Navigate to="/WaitingRoom" state={{ roomId: roomId }} />;
 
   return (
     <div>

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import axios from "axios";
 
 export default function JoinRoom({ images }) {
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -32,12 +34,11 @@ export default function JoinRoom({ images }) {
   };
   const addToRoom = async () => {
     try {
-      console.log(roomId);
-      console.log(userData);
-      const response = await axios.post("http://localhost:2000/api/addToRoom", {
+      await axios.post("http://localhost:2000/api/addToRoom", {
         roomId,
         userData,
       });
+      navigate("/WaitingRoom", { state: { roomId: roomId } });
     } catch (error) {
       console.error("Error adding player:", error);
     }
@@ -68,7 +69,7 @@ export default function JoinRoom({ images }) {
           required
           onChange={handleInputChange}
         />
-        <button
+        <Link
           //   to={{
           //     pathname: "/WaitingRoom",
           //   }}
@@ -82,7 +83,7 @@ export default function JoinRoom({ images }) {
             alt="!"
             className=" p-[9px] bg-forth rounded-full ml-3"
           />
-        </button>
+        </Link>
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import React from "react";
-import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import WaitingRoom from "./WaitingRoom";
 import PickACharacter from "./PickACharacter";

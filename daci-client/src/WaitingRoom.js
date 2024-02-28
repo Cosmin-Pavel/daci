@@ -1,26 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { io } from "socket.io-client";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 
 export default function WaitingRoom({ images }) {
   const location = useLocation();
-  const userData = location.state.userData;
   const roomId = location.state.roomId;
-  const [playersArray, setPlayersArray] = useState([userData]);
+  console.log(roomId);
+  const [playersArray, setPlayersArray] = useState([]);
+
+  const getPlayersArray = useCallback(async () => {
+    const response = await axios.post(
+      "http://localhost:2000/api/playersArray",
+      {
+        roomId,
+      }
+    );
+    console.log(response.data);
+    setPlayersArray(response.data);
+  }, [roomId]);
 
   useEffect(() => {
-    const socket = io("http://localhost:3001");
+    getPlayersArray();
+    const socket = io("http://localhost:2000");
     socket.on("connect", () => {
       console.log("User connected to the socket server");
     });
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+    // socket.on("roomUpdated", ({ roomId: updatedRoomId }) => {
+    //   if (updatedRoomId === roomId) {
+    //     console.log("aaaaa");
+    //   }
+    // });
+  }, [getPlayersArray, roomId]);
 
   const generateLink = () => {
     const link = `localhost:3000/JoinRoom?roomId=${roomId}`;
-    console.log(roomId);
     return link;
   };
 
