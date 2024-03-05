@@ -1,23 +1,37 @@
 const mongoose = require("mongoose");
 
-const roomSchema = new mongoose.Schema({
-  roomId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  creatorUsername: {
+const playerSchema = new mongoose.Schema({
+  username: {
     type: String,
     required: true,
   },
-  creatorImageIndex: {
-    type: String,
+  imageIndex: {
+    type: Number,
     required: true,
   },
-  players: {
+  cards: {
+    type: [String],
     required: true,
-    type: Array,
   },
 });
+
+const roomSchema = new mongoose.Schema(
+  {
+    roomId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    deckId: {
+      type: String,
+      required: true,
+    },
+    players: {
+      type: [playerSchema],
+      required: true,
+    },
+  },
+  { versionKey: false }
+);
 
 module.exports.Room = mongoose.model("Room", roomSchema);
