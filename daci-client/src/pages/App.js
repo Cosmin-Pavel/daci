@@ -7,6 +7,7 @@ import JoinRoom from "./JoinRoom";
 import "../styles/index.css";
 import GameRoom from "./GameRoom";
 import { io } from "socket.io-client";
+import { SocketProvider } from "../state/SocketContext";
 
 function App() {
   const images = ["/character-1.png", "/favicon.ico", "/refresh.png"];
@@ -34,7 +35,9 @@ function App() {
   ]);
   return (
     <div className="flex flex-col w-full h-full">
-      <RouterProvider router={router} />
+      <SocketProvider>
+        <RouterProvider router={router} />
+      </SocketProvider>
     </div>
   );
 }

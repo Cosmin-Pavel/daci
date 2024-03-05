@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import PlayersNav from "../compinents/PlayersNav";
+import { useSocketContext } from "../state/SocketContext";
 
 export default function WaitingRoom({ images }) {
   const location = useLocation();
@@ -18,10 +19,10 @@ export default function WaitingRoom({ images }) {
       }
     );
     setPlayersArray(response.data);
-    console.log(response.data);
   }, [roomId]);
 
-  const socket = io("http://localhost:2000");
+  const { socket } = useSocketContext();
+  console.log(socket);
 
   useEffect(() => {
     const listener = () => {
@@ -74,21 +75,22 @@ export default function WaitingRoom({ images }) {
             className=" p-[9px] bg-forth rounded-full "
           />
         </button>
-
-        <Link
-          to={{
-            pathname: "/GameRoom",
-          }}
-          state={{ playersArray, roomId }}
-          className="flex  w-1/2 justify-center items-center gap-2 self-stretc  text-black text-base font-normal leading-7 font-inter rounded-full bg-third "
-        >
-          Start
-          <img
-            src="/arrow-right.png"
-            alt="!"
-            className=" p-[9px] bg-forth rounded-full "
-          />
-        </Link>
+        {username === playersArray[0]?.username && (
+          <Link
+            to={{
+              pathname: "/GameRoom",
+            }}
+            state={{ playersArray, roomId }}
+            className="flex  w-1/2 justify-center items-center gap-2 self-stretc  text-black text-base font-normal leading-7 font-inter rounded-full bg-third "
+          >
+            Start
+            <img
+              src="/arrow-right.png"
+              alt="!"
+              className=" p-[9px] bg-forth rounded-full "
+            />
+          </Link>
+        )}
       </div>
     </>
   );
