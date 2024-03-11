@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { io } from "socket.io-client";
-import { Link, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import PlayersNav from "../compinents/PlayersNav";
 import { useSocketContext } from "../state/SocketContext";
+import { useNavigate } from "react-router-dom";
 
 export default function WaitingRoom({ images }) {
   const location = useLocation();
   const roomId = location.state.roomId;
   const username = location.state.username;
   const [playersArray, setPlayersArray] = useState([]);
+  const navigate = useNavigate();
 
   const getPlayersArray = useCallback(async () => {
     const response = await axios.post(
@@ -22,7 +24,6 @@ export default function WaitingRoom({ images }) {
   }, [roomId]);
 
   const { socket } = useSocketContext();
-  console.log(socket);
 
   useEffect(() => {
     const listener = () => {
@@ -36,11 +37,20 @@ export default function WaitingRoom({ images }) {
   }, [roomId, socket, username]);
 
   socket.on("usersChanged", (arg) => {
-    setPlayersArray(arg);
+    if (arg.roomId === roomId) setPlayersArray(arg.players);
   });
 
   socket.on("disconnect", () => {
     socket.emit("userDisconnected", { roomId, username });
+  });
+
+  socket.on("gameStarted", (arg) => {
+    console.log(arg);
+    console.log(roomId);
+    if (roomId === arg.roomId) console.log("aaaaaaaaa");
+    navigate("/GameRoom", {
+      state: { username, playersArray, roomId },
+    });
   });
 
   useEffect(() => {
@@ -57,6 +67,10 @@ export default function WaitingRoom({ images }) {
     navigator.clipboard.writeText(link).then(() => {
       alert("Link copied to clipboard!");
     });
+  };
+
+  const startTheGame = () => {
+    socket.emit("startTheGame", { roomId });
   };
 
   return (
@@ -80,7 +94,8 @@ export default function WaitingRoom({ images }) {
             to={{
               pathname: "/GameRoom",
             }}
-            state={{ playersArray, roomId }}
+            state={{ username, playersArray, roomId }}
+            onClick={startTheGame}
             className="flex  w-1/2 justify-center items-center gap-2 self-stretc  text-black text-base font-normal leading-7 font-inter rounded-full bg-third "
           >
             Start

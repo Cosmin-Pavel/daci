@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import PlayersNav from "../compinents/PlayersNav";
 import Table from "../compinents/Table";
@@ -9,21 +9,27 @@ const GameRoom = ({ images }) => {
   const location = useLocation();
   const roomId = location.state.roomId;
   const playersArray = location.state.playersArray;
-  console.log(playersArray);
-
-  async function getData() {
-    await axios.post("http://localhost:2000/api/initializeGame", { roomId });
-  }
+  const username = location.state.username;
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    getData();
-  }, []);
+    const fetchData = async () => {
+      await axios.post("http://localhost:2000/api/initializeGame", { roomId });
+    };
+    fetchData().then(() => {
+      setReady(true);
+    });
+  }, [roomId]);
 
   return (
     <div>
       <PlayersNav playersArray={playersArray} images={images} />
       <Table />
-      <Cards />
+      {ready ? (
+        <Cards username={username} roomId={roomId} />
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };

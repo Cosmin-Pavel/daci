@@ -1,17 +1,43 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import axios from "axios";
+import Card from "./Card";
 
-const Cards = () => {
-  const numberOfCards = 5;
+const Cards = ({ username, roomId }) => {
+  const [playerCards, setPlayerCards] = useState([]);
+  let [cardsVisible, setCardsVisible] = useState(0);
+
+  const handleCardClick = () => {
+    if (cardsVisible < 2) {
+      setCardsVisible(cardsVisible + 1);
+    }
+  };
+
+  const getPlayerCards = useCallback(async () => {
+    await axios
+      .get(
+        `http://localhost:2000/api/getCards?username=${username}&roomId=${roomId}`
+      )
+      .then((response) => {
+        setPlayerCards(response.data);
+      });
+  }, [roomId, username]);
+  console.log(playerCards);
+  useEffect(() => {
+    getPlayerCards();
+  }, [getPlayerCards, roomId, username]);
+
   return (
     <div>
       <div className="flex gap-4  justify-between ml-3 mr-3  max-w-xs  flex-wrap">
-        {[...Array(numberOfCards)].map((_, index) => (
-          <img
-            className=" w-11 h-auto"
-            src="/blue.svg"
-            alt="back of the card"
-            key={index}
-          />
+        {playerCards.map((_, index) => (
+          <div key={playerCards[index]}>
+            <Card
+              playerCards={playerCards}
+              index={index}
+              handleCardClick={handleCardClick}
+              cardsVisible={cardsVisible}
+            />
+          </div>
         ))}
       </div>
     </div>

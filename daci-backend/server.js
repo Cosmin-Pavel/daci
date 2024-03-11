@@ -63,6 +63,10 @@ io.on("connection", (socket) => {
       console.error("Error deleting user from room:", error);
     }
   });
+  socket.on("startTheGame", (roomId) => {
+    io.to(roomId).emit("gameStarted", { roomId });
+  });
+
   // Handle events here
   socket.on("disconnect", () => {});
 });
@@ -74,7 +78,7 @@ server.listen(PORT, () => {
 });
 
 app.post("/api/create-room", async (req, res) => {
-  console.log(req.body);
+  console.log("aaaaaaa");
   const newPlayer = {
     username: req.body.userData.username,
     imageIndex: req.body.userData.imageIndex,
@@ -118,7 +122,7 @@ app.post("/api/addToRoom", async (req, res) => {
     room.players.push(newPlayer);
     await room.save();
     res.status(200).json({ message: "User added succesfully" });
-    io.emit("usersChanged", room.players);
+    io.emit("usersChanged", { players: room.players, roomId: roomId }); //#TODO: handle not emitting to everyone
   } catch (error) {
     console.error("Error adding user to room:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -130,6 +134,24 @@ function generateRoomID() {
   const timestamp = currentDate.getTime();
   return timestamp;
 }
+
+app.get("/api/getCards", async (req, res) => {
+  const { username, roomId } = req.query;
+  console.log(roomId);
+  try {
+    let cards = [];
+    const room = await Room.findOne({ roomId: roomId });
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    const drawPromises = room.players.map((player) => {
+      if (player.username === username) cards = player.cards;
+    });
+    await Promise.all(drawPromises);
+    return res.status(200).json(cards);
+  } catch (error) {
+    console.error("Error drawing cards:", error);
+    res.status(500).json({ message: "Error drawing cards" });
+  }
+});
 
 app.post("/api/initializeGame", async (req, res) => {
   const { roomId } = req.body;
@@ -143,7 +165,7 @@ app.post("/api/initializeGame", async (req, res) => {
 
     try {
       const room = await Room.findOne({ roomId: roomId });
-      console.log("room1:", room);
+
       if (!room) return res.status(404).json({ message: "Room not found" });
 
       room.deckId = deckId;
@@ -165,15 +187,13 @@ app.post("/api/initializeGame", async (req, res) => {
       // Wait for all draw operations to complete
       await Promise.all(drawPromises);
       // Save room with updated player cards
-      console.log("room2:", room);
+
       await room.save();
 
-      res
-        .status(200)
-        .json({
-          message: "Game initialized successfully",
-          playersArray: room.players,
-        });
+      res.status(200).json({
+        message: "Game initialized successfully",
+        playersArray: room.players,
+      });
     } catch (error) {
       console.error("Error initializing deck:", error);
       res.status(500).json({ message: "Error initializing deck" });

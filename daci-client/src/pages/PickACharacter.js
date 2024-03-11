@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 
 export default function PickACharacter({ images }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [roomId, setRoomId] = useState("");
+  const navigate = useNavigate();
 
   const nextImage = () => {
     const newIndex =
@@ -31,7 +31,6 @@ export default function PickACharacter({ images }) {
   };
 
   const createRoom = async () => {
-    console.log(userData);
     try {
       const response = await axios.post(
         "http://localhost:2000/api/create-room",
@@ -39,19 +38,13 @@ export default function PickACharacter({ images }) {
           userData,
         }
       );
-      setRoomId(response.data.roomId);
+      navigate("/WaitingRoom", {
+        state: { roomId: response.data.roomId, username: userData.username },
+      });
     } catch (error) {
       console.error("Error creating room:", error);
     }
   };
-
-  if (roomId !== "")
-    return (
-      <Navigate
-        to="/WaitingRoom"
-        state={{ roomId: roomId, username: userData.username }}
-      />
-    );
 
   return (
     <div>
