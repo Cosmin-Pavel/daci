@@ -63,8 +63,11 @@ io.on("connection", (socket) => {
       console.error("Error deleting user from room:", error);
     }
   });
-  socket.on("startTheGame", (roomId) => {
-    io.to(roomId).emit("gameStarted", { roomId });
+  socket.on("startTheGame", (data) => {
+    io.to(data.roomId).emit("gameStarted");
+  });
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
   });
 
   // Handle events here
@@ -78,7 +81,6 @@ server.listen(PORT, () => {
 });
 
 app.post("/api/create-room", async (req, res) => {
-  console.log("aaaaaaa");
   const newPlayer = {
     username: req.body.userData.username,
     imageIndex: req.body.userData.imageIndex,
@@ -137,7 +139,6 @@ function generateRoomID() {
 
 app.get("/api/getCards", async (req, res) => {
   const { username, roomId } = req.query;
-  console.log(roomId);
   try {
     let cards = [];
     const room = await Room.findOne({ roomId: roomId });
