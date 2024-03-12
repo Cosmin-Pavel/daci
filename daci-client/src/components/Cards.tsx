@@ -1,22 +1,41 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import Card from "./Card";
+import { useSocketContext } from "../state/SocketContext";
+
+
+
 
 interface CardsProps {
   username:string
   roomId:string
+  gameState:string
 
 }
+interface CardsChangedEvent{
+  username:string
+  card:string
+}
 
-const Cards = ({ username, roomId }:CardsProps) => {
-  const [playerCards, setPlayerCards] = useState([]);
+const Cards = ({ username, roomId, gameState }:CardsProps) => {
+  const [playerCards, setPlayerCards] = useState<string[]>([]);
   let [cardsVisible, setCardsVisible] = useState(0);
+
+  const {socket} = useSocketContext();
 
   const handleCardClick = () => {
     if (cardsVisible < 2) {
       setCardsVisible(cardsVisible + 1);
     }
   };
+
+
+  socket.on("cardsChanged", (arg:CardsChangedEvent) => {
+    if(arg.username===username){
+      
+      setPlayerCards([...playerCards, arg.card])
+    }
+});
 
   const getPlayerCards = useCallback(async () => {
     await axios
@@ -38,6 +57,7 @@ const Cards = ({ username, roomId }:CardsProps) => {
         {playerCards.map((_, index) => (
           <div key={playerCards[index]}>
             <Card
+              gameState={gameState}
               playerCards={playerCards}
               index={index}
               handleCardClick={handleCardClick}

@@ -6,15 +6,16 @@ interface CardProps{
   index:number
   handleCardClick: () => void;
   cardsVisible:number
+  gameState:string
 }
 
-const Card = ({ playerCards, index, handleCardClick, cardsVisible }:CardProps) => {
+const Card = ({ playerCards, index, handleCardClick, cardsVisible,gameState}:CardProps) => {
   const [imageSrc, setImageSrc] = useState("/blue.svg");
 
   const showCard = () => {
     console.log(cardsVisible);
     handleCardClick();
-    if (cardsVisible < 2) {
+    if (cardsVisible < 2 && gameState === "seeCards") {
       const card = playerCards[index];
       setImageSrc(`/svg_playing_cards/fronts/${cardDictionary[card]}`);
       setTimeout(() => {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { io } from "socket.io-client";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link,  useLocation } from "react-router-dom";
 import axios, { AxiosResponse } from "axios";
 import PlayersNav from "../components/PlayersNav";
 import { useSocketContext } from "../state/SocketContext";
@@ -15,9 +14,8 @@ interface WaitingRoomProps{
 
 export default function WaitingRoom({ images }:WaitingRoomProps) {
   const location = useLocation();
-  // const roomId = location.state.roomId;
-  // const [playersArray, setPlayersArray] = useState<string[]>([]);
-  const [roomData, setRoomData] = useState<Room>({roomId:location.state.roomId, playersArray:[]})
+  const roomId = location.state.roomId;
+  const [players, setPlayers] = useState<Player[]>([]);
   const username:string = location.state.username;
   const navigate = useNavigate();
 
@@ -25,48 +23,51 @@ export default function WaitingRoom({ images }:WaitingRoomProps) {
     const response: AxiosResponse<Player[]> = await axios.post(
       "http://localhost:2000/api/playersArray",
       {
-        roomId:roomData.roomId,
+        roomId: roomId,
       }
     );
-    setRoomData({...roomData, playersArray: response.data});
-  }, [roomData]);
+    setPlayers(response.data)
+  }, [roomId]);
 
   const { socket } = useSocketContext();
 
   useEffect(() => {
     const listener = () => {
-      socket.emit("userDisconnected", { roomId:roomData.roomId, username });
+      socket.emit("userDisconnected", { roomId:roomId, username });
     };
     window.addEventListener("beforeunload", listener);
 
     return () => {
       window.removeEventListener("beforeunload", listener);
     };
-  }, [roomData.roomId, socket, username]);
+  }, [roomId, socket, username]);
 
   socket.on("usersChanged", (arg:Room) => {
-    if(arg.playersArray){
-      if (arg.roomId === roomData.roomId) setRoomData({...roomData, playersArray: arg.playersArray});
-
+    console.log(arg);
+    if(arg.players){
+      if (arg.roomId === roomId) {
+        setPlayers(arg.players);
+      }
     }
+    console.log(arg.players);
   });
 
   socket.on("disconnect", () => {
-    socket.emit("userDisconnected", { roomId:roomData.roomId, username });
+    socket.emit("userDisconnected", { roomId:roomId, username });
   });
 
   socket.on("gameStarted", () => {
     navigate("/GameRoom", {
-      state: { username, playersArray:roomData.playersArray, roomId:roomData.roomId },
+      state: { username, players, roomId },
     });
   });
 
   useEffect(() => {
     getPlayersArray();
-  }, [getPlayersArray, roomData.roomId]);
+  }, [getPlayersArray]);
 
   const generateLink = () => {
-    const link = `localhost:3000/JoinRoom?roomId=${roomData.roomId}`;
+    const link = `localhost:3000/JoinRoom?roomId=${roomId}`;
     return link;
   };
 
@@ -78,12 +79,12 @@ export default function WaitingRoom({ images }:WaitingRoomProps) {
   };
 
   const startTheGame = () => {
-    socket.emit("startTheGame", { roomId:roomData.roomId });
+    socket.emit("startTheGame", { roomId:roomId });
   };
 
   return (
     <>
-      { roomData.playersArray && <PlayersNav playersArray={roomData.playersArray} images={images} />}
+      { players && <PlayersNav players={players} images={images} />}
 
       <div className="flex  justify-between pl-5 pr-5 mt-80 gap-3">
         <button
@@ -98,12 +99,12 @@ export default function WaitingRoom({ images }:WaitingRoomProps) {
           />
         </button>
         {
-roomData.playersArray && username === roomData.playersArray[0]?.username && (
+players && username === players[0]?.username && (
           <Link
             to={{
               pathname: "/GameRoom",
             }}
-            state={{ username, playersArray:roomData.playersArray, roomId:roomData.roomId }}
+            state={{ username, players:players, roomId:roomId }}
             onClick={startTheGame}
             className="flex  w-1/2 justify-center items-center gap-2 self-stretc  text-black text-base font-normal leading-7 font-inter rounded-full bg-third "
           >

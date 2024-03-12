@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useSocketContext } from "../state/SocketContext";
 
@@ -10,7 +9,6 @@ interface PickACharacterProps{
 
 export default function PickACharacter({ images }:PickACharacterProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [roomId, setRoomId] = useState<number>();
   const navigate = useNavigate();
 
   const nextImage = () => {
@@ -44,7 +42,7 @@ export default function PickACharacter({ images }:PickACharacterProps) {
           userData,
         }
       );
-      socket.emit("joinRoom", roomId);
+      socket.emit("joinRoom",  response.data.roomId);
       navigate("/WaitingRoom", {
         state: { roomId: response.data.roomId, username: userData.username },
       });
@@ -73,7 +71,7 @@ export default function PickACharacter({ images }:PickACharacterProps) {
           name="username"
           type="text"
           id="Username"
-          className=" w-[100%] flex p-2 p-3 items-center gap-2 gap-3  rounded-md border border-gray-200 bg-white shadow-xs"
+          className=" w-[100%] flex p-3 items-center gap-3  rounded-md border border-gray-200 bg-white shadow-xs"
           placeholder="Enter your username"
           required
           onChange={handleInputChange}

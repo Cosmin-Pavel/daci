@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useSocketContext } from "../state/SocketContext";
@@ -73,7 +72,7 @@ export default function JoinRoom({images} : JoinRoomProps) {
           name="username"
           type="text"
           id="Username"
-          className=" w-[100%] flex p-2 p-3 items-center gap-2 gap-3  rounded-md border border-gray-200 bg-white shadow-xs"
+          className=" w-[100%] flex  p-3 items-center  gap-3  rounded-md border border-gray-200 bg-white shadow-xs"
           placeholder="Enter your username"
           required
           onChange={handleInputChange}
