@@ -1,6 +1,10 @@
+import { Socket } from "socket.io";
+
 require("dotenv").config();
 const { Room } = require("./models/model");
-const express = require("express");
+import {Express,Request,Response} from "express"
+import express = require("express");
+import { Document } from "mongodb";
 const cors = require("cors");
 const mongoose = require("mongoose");
 const http = require("http");
@@ -13,6 +17,9 @@ const app = express();
 
 // Enable CORS
 app.use(cors());
+ 
+
+
 
 // Connect to MongoDB database
 const mongoString = process.env.DATABASE_URL;
@@ -20,7 +27,7 @@ mongoose.connect(mongoString);
 const database = mongoose.connection;
 
 // Log database connection status
-database.on("error", (error) => {
+database.on("error", (error: string) => {
   console.log(error);
 });
 database.once("connected", () => {
@@ -45,9 +52,31 @@ const io = new Server(server, {
   },
 });
 
+interface userDisconnectedData{
+  roomId:string
+  username:string
+} 
+
+
+interface PlayerInterface {
+  username: string
+    imageIndex: number
+    cards: string[]
+}
+
+
+interface RoomInterface extends Document{
+  roomId: string
+  deckId: string
+  players: PlayerInterface[]
+  gameState:string
+}
+
+
+
 // Handle WebSocket connections
-io.on("connection", (socket) => {
-  socket.on("userDisconnected", async (data) => {
+io.on("connection", (socket: Socket) => {
+  socket.on("userDisconnected", async (data:userDisconnectedData) => {
     const { roomId, username } = data;
     try {
       const updatedRoom = await Room.findOneAndUpdate(
@@ -66,7 +95,7 @@ io.on("connection", (socket) => {
   socket.on("startTheGame", (data) => {
     io.to(data.roomId).emit("gameStarted");
   });
-  socket.on("joinRoom", (roomId) => {
+  socket.on("joinRoom", (roomId:string) => {
     socket.join(roomId);
   });
 
@@ -90,11 +119,13 @@ app.post("/api/create-room", async (req, res) => {
     roomId: generateRoomID(),
     players: [newPlayer],
     deckId: "0",
+    gameState:"",
   });
   try {
     const dataToSave = await data.save();
     return res.status(200).json(dataToSave);
-  } catch (error) {
+  } catch (error:any) {
+    console.error(error);
     return res.status(400).json({ message: error.message });
   }
 });
@@ -124,6 +155,7 @@ app.post("/api/addToRoom", async (req, res) => {
     room.players.push(newPlayer);
     await room.save();
     res.status(200).json({ message: "User added succesfully" });
+   
     io.emit("usersChanged", { players: room.players, roomId: roomId }); //#TODO: handle not emitting to everyone
   } catch (error) {
     console.error("Error adding user to room:", error);
@@ -137,13 +169,19 @@ function generateRoomID() {
   return timestamp;
 }
 
+interface Player{
+  username:string
+  imageIndex:number
+  cards:string[]
+}
+
 app.get("/api/getCards", async (req, res) => {
   const { username, roomId } = req.query;
   try {
-    let cards = [];
+    let cards:string[] = [];
     const room = await Room.findOne({ roomId: roomId });
     if (!room) return res.status(404).json({ message: "Room not found" });
-    const drawPromises = room.players.map((player) => {
+    const drawPromises = room.players.map((player:Player) => {
       if (player.username === username) cards = player.cards;
     });
     await Promise.all(drawPromises);
@@ -153,6 +191,34 @@ app.get("/api/getCards", async (req, res) => {
     res.status(500).json({ message: "Error drawing cards" });
   }
 });
+
+
+app.post("/api/drawACard", async(req, res)=>{
+  const roomId = req.body.roomId;
+  const username = req.body.username
+  try{
+    const room: RoomInterface = await Room.findOne({ roomId: roomId });
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    const deckId = room.deckId;
+   
+    const response = await axios.get(
+      `https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
+    );
+    room.players.forEach((element)=>{
+        if(element.username === username){
+          element.cards.push(response.data.cards[0].code);
+          
+        }
+  
+    })
+    room.save()
+    io.to(roomId).emit("cardsChanged",{username:username,card:response.data.cards[0].code})
+    res.status(200).json({cardCode:response.data.cards[0].code})
+  }catch(error){
+    console.error("Error drawing a card:", error);
+    res.status(500).json({ message: "Error drawing a card" });
+  }
+})
 
 app.post("/api/initializeGame", async (req, res) => {
   const { roomId } = req.body;
@@ -165,20 +231,34 @@ app.post("/api/initializeGame", async (req, res) => {
     const deckId = response.data.deck_id;
 
     try {
-      const room = await Room.findOne({ roomId: roomId });
+      const room:RoomInterface = await Room.findOne({ roomId: roomId });
 
       if (!room) return res.status(404).json({ message: "Room not found" });
 
       room.deckId = deckId;
+      room.gameState = "seeCards"
+      let index = 0;
+      setInterval(() => {
+        if(index<room.players.length){
+          room.gameState = room.players[index].username;
+          console.log(room);
+          console.log("console log la ala", room.players[index].username);
+          index++;
+          io.emit('gameStateChange', {gameState: room.gameState});
+        } else {
+          index=0
+        }
+    }, 10000);
       // Draw cards for each player
-      const drawPromises = room.players.map(async (elem) => {
+      const drawPromises = room.players.map(async (player:Player) => {
         try {
           const response = await axios.get(
             `https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
           );
 
-          const cardCodes = response.data.cards.map((card) => card.code);
-          elem.cards = cardCodes;
+          const cardCodes = response.data.cards.map((card:any) => card.code);
+          player.cards = cardCodes;
+          
         } catch (error) {
           console.error("Error drawing cards:", error);
           res.status(500).json({ message: "Error drawing cards" });

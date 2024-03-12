@@ -30,6 +30,9 @@ const roomSchema = new mongoose.Schema(
       type: [playerSchema],
       required: true,
     },
+    gameState: {
+      type: String,
+    },
   },
   { versionKey: false }
 );
