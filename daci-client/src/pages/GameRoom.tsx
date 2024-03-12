@@ -26,7 +26,6 @@ const GameRoom: React.FC<GameRoomProps> = ({ images }: GameRoomProps) => {
   const {socket} = useSocketContext();
 
   socket.on("gameStateChange",(arg: GameStateEvent)=>{
-    console.log("pulapula", arg);
   setGameState(arg.gameState)
   })
 

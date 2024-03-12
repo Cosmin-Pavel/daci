@@ -241,8 +241,6 @@ app.post("/api/initializeGame", async (req, res) => {
       setInterval(() => {
         if(index<room.players.length){
           room.gameState = room.players[index].username;
-          console.log(room);
-          console.log("console log la ala", room.players[index].username);
           index++;
           io.emit('gameStateChange', {gameState: room.gameState});
         } else {

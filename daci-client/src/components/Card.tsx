@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { cardDictionary } from "../utils/cardDictionary";
 
 interface CardProps{
@@ -13,7 +13,6 @@ const Card = ({ playerCards, index, handleCardClick, cardsVisible,gameState}:Car
   const [imageSrc, setImageSrc] = useState("/blue.svg");
 
   const showCard = () => {
-    console.log(cardsVisible);
     handleCardClick();
     if (cardsVisible < 2 && gameState === "seeCards") {
       const card = playerCards[index];
@@ -23,6 +22,18 @@ const Card = ({ playerCards, index, handleCardClick, cardsVisible,gameState}:Car
       }, 3000);
     }
   };
+
+  useEffect(()=>{
+    if(index>3){
+      const card = playerCards[index];
+      setImageSrc(`/svg_playing_cards/fronts/${cardDictionary[card]}`);
+      setTimeout(() => {
+        setImageSrc("/blue.svg");
+      }, 3000);
+    }
+
+  },[index, playerCards])
+
 
   return (
     <img

@@ -84,7 +84,7 @@ export default function WaitingRoom({ images }:WaitingRoomProps) {
 
   return (
     <>
-      { players && <PlayersNav players={players} images={images} />}
+      { players && <PlayersNav players={players} images={images}/>}
 
       <div className="flex  justify-between pl-5 pr-5 mt-80 gap-3">
         <button

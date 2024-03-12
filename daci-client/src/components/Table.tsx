@@ -15,7 +15,7 @@ interface TableProps{
 const Table = ({roomId,username,gameState}:TableProps) => {
 
   const drawACard = async () => {
-    console.log(roomId);
+    if(gameState === username)
     await axios.post("http://localhost:2000/api/drawACard",{roomId,username})
   }
 

@@ -46,7 +46,6 @@ const Cards = ({ username, roomId, gameState }:CardsProps) => {
         setPlayerCards(response.data);
       });
   }, [roomId, username]);
-  console.log(playerCards);
   useEffect(() => {
     getPlayerCards();
   }, [getPlayerCards, roomId, username]);
