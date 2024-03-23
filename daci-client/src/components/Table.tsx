@@ -9,9 +9,6 @@ interface TableProps{
 
 
 
-
-
-
 const Table = ({roomId,username,gameState}:TableProps) => {
 
   const drawACard = async () => {

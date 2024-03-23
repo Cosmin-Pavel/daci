@@ -32,7 +32,6 @@ const Cards = ({ username, roomId, gameState }:CardsProps) => {
 
   socket.on("cardsChanged", (arg:CardsChangedEvent) => {
     if(arg.username===username){
-      
       setPlayerCards([...playerCards, arg.card])
     }
 });
