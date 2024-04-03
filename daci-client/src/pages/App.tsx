@@ -1,4 +1,4 @@
-import React from "react";
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import WaitingRoom from "./WaitingRoom";
 import PickACharacter from "./PickACharacter";
@@ -7,6 +7,8 @@ import JoinRoom from "./JoinRoom";
 import "../styles/index.css";
 import GameRoom from "./GameRoom";
 import { SocketProvider } from "../state/SocketContext";
+import {DndProvider} from "react-dnd"
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 function App() {
   const images: Array<string> = ["/character-1.png", "/favicon.ico", "/refresh.png"];
@@ -33,11 +35,15 @@ function App() {
     },
   ]);
   return (
+    <DndProvider backend={HTML5Backend}>
     <div className="flex flex-col w-full h-full">
       <SocketProvider>
+        
         <RouterProvider router={router} />
+        
       </SocketProvider>
     </div>
+    </DndProvider>
   );
 }
 

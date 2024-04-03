@@ -2,26 +2,20 @@ import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import Card from "./Card";
 import { useSocketContext } from "../state/SocketContext";
-
-
-
+import { CardsChangedEvent, PlayerCard } from "../types/types";
 
 interface CardsProps {
-  username:string
-  roomId:string
-  gameState:string
-
-}
-interface CardsChangedEvent{
-  username:string
-  card:string
+  username: string;
+  roomId: string;
+  gameState: string;
 }
 
-const Cards = ({ username, roomId, gameState }:CardsProps) => {
+const Cards = ({ username, roomId, gameState }: CardsProps) => {
   const [playerCards, setPlayerCards] = useState<string[]>([]);
-  let [cardsVisible, setCardsVisible] = useState(0);
+  const [cardsVisible, setCardsVisible] = useState(0);
+  const [drawnCard, setDrawnCard] = useState("");
 
-  const {socket} = useSocketContext();
+  const { socket } = useSocketContext();
 
   const handleCardClick = () => {
     if (cardsVisible < 2) {
@@ -29,12 +23,25 @@ const Cards = ({ username, roomId, gameState }:CardsProps) => {
     }
   };
 
-
-  socket.on("cardsChanged", (arg:CardsChangedEvent) => {
-    if(arg.username===username){
-      setPlayerCards([...playerCards, arg.card])
+  socket.on("cardsChanged", (arg: CardsChangedEvent) => {
+    if (arg.username === username) {
+      setPlayerCards([...playerCards, arg.card]);
+      setDrawnCard(arg.card);
     }
-});
+  });
+
+  socket.on("downCardChange", (arg: PlayerCard) => {
+    if (arg.username === username) {
+      const newArray = [...playerCards]; // Create a new array based on the current state
+      const index = newArray.indexOf(arg.card);
+
+      if (index !== -1) {
+        newArray.splice(index, 1); // Modify the new array
+
+        setPlayerCards(newArray); // Update the state with the new array
+      }
+    }
+  });
 
   const getPlayerCards = useCallback(async () => {
     await axios
@@ -60,6 +67,7 @@ const Cards = ({ username, roomId, gameState }:CardsProps) => {
               index={index}
               handleCardClick={handleCardClick}
               cardsVisible={cardsVisible}
+              isDrawn={playerCards[index] === drawnCard}
             />
           </div>
         ))}
