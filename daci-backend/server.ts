@@ -91,6 +91,9 @@ io.on("connection", (socket: Socket) => {
   socket.on("joinRoom", (roomId: string) => {
     socket.join(roomId);
   });
+  socket.on("daciPressed", (data) => {
+    io.to(data.roomId).emit("daci", data.username);
+  });
   socket.on("downCardChanged", async (data) => {
     const roomId = data.roomId;
     const username = data.username;

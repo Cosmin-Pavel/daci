@@ -20,32 +20,37 @@ const Table = ({ roomId, username, gameState }: TableProps) => {
   const [downCard, setDownCard] = useState("/blue.svg");
   const [canClick, setCanClick] = useState(true);
   const [canDrop, setCanDrop] = useState(false);
+  const [daci, setDaci] = useState("");
   const [{ isOver }, drop] = useDrop(
     useMemo(
       () => ({
         accept: "card",
         drop: (item: CardType): undefined => {
-          setDownCard(item.card);
-          socket.emit("downCardChanged", {
-            card: item.card,
-            username: username,
-            roomId: roomId,
-          });
-          console.log(item.card);
-          setCanDrop(false);
+          if (canDrop || checkIfSameCard(downCard, item.card)) {
+            setDownCard(item.card);
+            socket.emit("downCardChanged", {
+              card: item.card,
+              username: username,
+              roomId: roomId,
+            });
+            console.log(item.card);
+            setCanDrop(false);
+          }
           return undefined;
         },
-        canDrop: () => canDrop,
+        // canDrop: () => canDrop,
         collect: (monitor) => ({
           isOver: !!monitor.isOver(),
         }),
       }),
-      [canDrop, roomId, socket, username]
+      [canDrop, downCard, roomId, socket, username]
     )
   );
 
   const checkIfSameCard = (card1: string, card2: string) => {
-    if (card1.substring(0, 1) === card2.substring(0, 1)) return true;
+    if (card1 && card2 && card1.charAt(0) === card2.charAt(0)) {
+      return true;
+    }
     return false;
   };
 
@@ -72,16 +77,31 @@ const Table = ({ roomId, username, gameState }: TableProps) => {
     setDownCard(arg.card);
   });
 
+  socket.on("daci", (username: string) => {
+    setDaci(username);
+  });
+
+  const daciPressed = () => {
+    setDaci(username);
+    socket.emit("daciPressed", { username: username, roomId: roomId });
+  };
+
   return (
-    <div className="flex justify-between ml-9 mr-9 mt-20 mb-20">
-      <div ref={drop} className="w-32 h-44 bg-slate-600">
-        <img
-          src={`/svg_playing_cards/fronts/${cardDictionary[downCard]}`}
-          alt="card-down"
-        />
+    <>
+      <div className="flex justify-between ml-9 mr-9 mt-20 mb-20">
+        <div ref={drop} className="w-32 h-44 bg-slate-600">
+          <img
+            src={`/svg_playing_cards/fronts/${cardDictionary[downCard]}`}
+            alt="card-down"
+          />
+        </div>
+        <img src="Deck.svg" alt="deck" onClick={drawACard} />
       </div>
-      <img src="Deck.svg" alt="deck" onClick={drawACard} />
-    </div>
+      <button className=" bg-slate-600 h-5 " onClick={daciPressed}>
+        Daci!
+      </button>
+      {daci && <p>Daci was pressed!</p>}
+    </>
   );
 };
 
