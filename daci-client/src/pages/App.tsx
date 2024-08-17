@@ -39,7 +39,7 @@ function App() {
     },
     {
       path: "/EndGameScreen",
-      element: <EndGame />,
+      element: <EndGame images={images} />,
     },
   ]);
   return (

@@ -30,26 +30,10 @@ const GameRoom: React.FC<GameRoomProps> = ({ images }: GameRoomProps) => {
   const [instructions, setInstructions] = useState<string>(
     "Click on 2 cards to reveal them."
   );
-  const [turnsLeft, setTurnsLeft] = useState<number>();
   const [daciPlayer, setDaciPlayer] = useState<string>();
   const [endGame, setEndGame] = useState<boolean>(false);
 
   const { socket } = useSocketContext();
-
-  socket.on("gameStateChange", (arg: GameStateEvent) => {
-    setGameState(arg.gameState);
-    if (username === arg.gameState)
-      setInstructions("Click on the deck to draw a card");
-    else setInstructions("");
-    console.log(username);
-    console.log(daciPlayer);
-    if (username === daciPlayer) {
-      if (lastTurn) {
-        setEndGame(true);
-      }
-      setLastTurn(true);
-    }
-  });
 
   socket.on("cardsChanged", (arg: CardsChangedEvent) => {
     if (arg.username === username) {
@@ -57,27 +41,60 @@ const GameRoom: React.FC<GameRoomProps> = ({ images }: GameRoomProps) => {
     }
   });
 
-  socket.on("daci", (username: string) => {
+  socket.on("daci", (daciArray: string[]) => {
     if (roomData.players && roomData.players?.length > 0) {
-      setDaciPlayer(username);
+      setDaciPlayer(daciArray[daciArray.length - 1]);
     }
   });
+  useEffect(() => {
+    const handleEndGameServer = () => {
+      setEndGame(true);
+    };
+    socket.on("endGameServer", handleEndGameServer);
+    return () => {
+      socket.off("endGameServer", handleEndGameServer);
+    };
+  }, [socket]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      await axios.post("http://localhost:2000/api/initializeGame", {
-        roomId: roomData.roomId,
-      });
+    const handleGameStateChange = (arg: GameStateEvent) => {
+      setGameState(arg.gameState);
+
+      if (username === arg.gameState)
+        setInstructions("Click on the deck to draw a card");
+      else setInstructions("");
+      if (username === daciPlayer) {
+        setLastTurn(true);
+      }
+      if (lastTurn && username === daciPlayer) {
+        socket.emit("endGame", {
+          roomId: roomData.roomId,
+          daciPlayer: daciPlayer,
+        });
+      }
     };
-    fetchData().then(() => {
-      setReady(true);
-    });
-  }, [roomData.roomId]);
+
+    socket.on("gameStateChange", handleGameStateChange);
+    return () => {
+      console.log("Cleaning up gameStateChange listener");
+      socket.off("gameStateChange", handleGameStateChange);
+    };
+  }, [daciPlayer, lastTurn, roomData.roomId, socket, username]);
+
+  useEffect(() => {
+    axios
+      .post("http://localhost:2000/api/initializeGame", {
+        roomId: roomData.roomId,
+        username: username,
+      })
+      .then(() => {
+        setReady(true);
+      });
+  }, [roomData.roomId, username]);
 
   useEffect(() => {
     if (endGame) {
-      console.log("merge??");
-      navigate("/EndGameScreen");
+      navigate("/EndGameScreen", { state: { roomId: roomData.roomId } });
     }
   }, [endGame, navigate]);
 

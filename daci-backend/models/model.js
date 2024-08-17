@@ -33,6 +33,12 @@ const roomSchema = new mongoose.Schema(
     gameState: {
       type: String,
     },
+    intervalId: {
+      type: Number,
+    },
+    daciArray: {
+      type: [String],
+    },
   },
   { versionKey: false }
 );

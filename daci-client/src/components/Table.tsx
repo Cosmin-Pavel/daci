@@ -21,6 +21,8 @@ const Table = ({ roomId, username, gameState }: TableProps) => {
   const [canClick, setCanClick] = useState(true);
   const [canDrop, setCanDrop] = useState(false);
   const [daci, setDaci] = useState("");
+  const [canPressDaci, setCanPressDaci] = useState(false);
+  const [canPressRetract, setCanPressRetract] = useState(false);
   const [{ isOver }, drop] = useDrop(
     useMemo(
       () => ({
@@ -33,8 +35,8 @@ const Table = ({ roomId, username, gameState }: TableProps) => {
               username: username,
               roomId: roomId,
             });
-            console.log(item.card);
             setCanDrop(false);
+            setCanPressDaci(true);
           }
           return undefined;
         },
@@ -65,25 +67,38 @@ const Table = ({ roomId, username, gameState }: TableProps) => {
     }
   };
 
-  useEffect(() => {
-    console.log(canDrop);
-  }, [canDrop]);
-
   socket.on("gameStateChange", (arg: GameStateEvent) => {
     arg.gameState === username && setCanClick(true);
+    setCanPressDaci(false);
+    setCanPressRetract(false);
+    setCanDrop(false);
   });
 
   socket.on("downCardChange", (arg: PlayerCard) => {
     setDownCard(arg.card);
   });
 
-  socket.on("daci", (username: string) => {
-    setDaci(username);
+  socket.on("daci", (daciArray: string[]) => {
+    setDaci(daciArray[daciArray.length - 1]);
+    console.log(daciArray);
+
+    const usernameIndex = daciArray.indexOf(username);
+
+    if (usernameIndex !== -1 && usernameIndex === daciArray.length - 2)
+      setCanPressRetract(true);
   });
 
   const daciPressed = () => {
-    setDaci(username);
-    socket.emit("daciPressed", { username: username, roomId: roomId });
+    if (canPressDaci) {
+      setDaci(username);
+      socket.emit("daciPressed", { username: username, roomId: roomId });
+    }
+  };
+  const retractPressed = () => {
+    if (canPressRetract) {
+      setCanPressRetract(false);
+      socket.emit("retractPressed", { username: username, roomId: roomId });
+    }
   };
 
   return (
@@ -97,10 +112,25 @@ const Table = ({ roomId, username, gameState }: TableProps) => {
         </div>
         <img src="Deck.svg" alt="deck" onClick={drawACard} />
       </div>
-      <button className=" bg-slate-600 h-5 " onClick={daciPressed}>
-        Daci!
-      </button>
-      {daci && <p>Daci was pressed!</p>}
+      {!canPressRetract && (
+        <button
+          className={`h-5 ${canPressDaci ? "bg-blue-600" : "bg-gray-600"}`}
+          onClick={daciPressed}
+          disabled={!canPressDaci}
+        >
+          {daci && daci !== username ? "Double Daci" : "Daci!"}
+        </button>
+      )}
+      {canPressRetract && (
+        <button
+          className={`h-5 ${canPressRetract ? "bg-blue-600" : "bg-gray-600"}`}
+          onClick={retractPressed}
+          disabled={!canPressRetract}
+        >
+          {"Retract!"}
+        </button>
+      )}
+      {daci && <p>Daci was pressed by {daci}!</p>}
     </>
   );
 };

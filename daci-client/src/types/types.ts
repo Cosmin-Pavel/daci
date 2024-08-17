@@ -24,3 +24,7 @@ export interface PlayerCard {
   card: string;
   username: string;
 }
+
+export interface Scores {
+  [username: string]: number;
+}
