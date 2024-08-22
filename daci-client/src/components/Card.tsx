@@ -7,22 +7,29 @@ import { useSocketContext } from "../state/SocketContext";
 interface CardProps {
   playerCards: string[];
   index: number;
-  handleCardClick: () => void;
-  cardsVisible: number;
-  gameState: GameState;
-  isDrawn: boolean;
+  handleCardClick?: () => void;
+  cardsVisible?: number;
+  gameState?: GameState;
+  isDrawn?: boolean;
+  qAction: boolean;
+  setQAction: (value: boolean) => void;
+  qNumber?: number;
+  setQNumber?: (value: number) => void;
 }
 
 const Card = ({
   playerCards,
   index,
-  handleCardClick,
-  cardsVisible,
+  handleCardClick = () => {},
+  cardsVisible = 0,
   gameState,
   isDrawn,
+  qAction,
+  setQAction,
+  qNumber,
+  setQNumber,
 }: CardProps) => {
   const [canBeVisible, setCanBeVisible] = useState(isDrawn);
-
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "card",
     item: { card: playerCards[index] },
@@ -41,7 +48,27 @@ const Card = ({
         setImageSrc("/blue.svg");
       }, 3000);
     }
+    if (qAction) {
+      if (qNumber && setQNumber) {
+        setQNumber(qNumber - 1);
+      }
+      if (qNumber && qNumber >= 0) {
+        const card = playerCards[index];
+        setImageSrc(`/svg_playing_cards/fronts/${cardDictionary[card]}`);
+        setTimeout(() => {
+          setImageSrc("/blue.svg");
+          if (qNumber - 1 === 0) {
+            setQAction(false);
+          }
+        }, 3000);
+      }
+    }
   };
+
+  useEffect(() => {
+    console.log(qAction);
+    console.log("qnumber:", qNumber);
+  }, [qAction, qNumber]);
 
   useEffect(() => {
     if (canBeVisible) {

@@ -8,9 +8,21 @@ interface CardsProps {
   username: string;
   roomId: string;
   gameState: string;
+  qAction: boolean;
+  setQAction: (value: boolean) => void;
+  qNumber: number;
+  setQNumber: (value: number) => void;
 }
 
-const Cards = ({ username, roomId, gameState }: CardsProps) => {
+const Cards = ({
+  username,
+  roomId,
+  gameState,
+  qAction,
+  setQAction,
+  qNumber,
+  setQNumber,
+}: CardsProps) => {
   const [playerCards, setPlayerCards] = useState<string[]>([]);
   const [cardsVisible, setCardsVisible] = useState(0);
   const [drawnCard, setDrawnCard] = useState("");
@@ -68,6 +80,10 @@ const Cards = ({ username, roomId, gameState }: CardsProps) => {
               handleCardClick={handleCardClick}
               cardsVisible={cardsVisible}
               isDrawn={playerCards[index] === drawnCard}
+              qAction={qAction}
+              setQAction={setQAction}
+              qNumber={qNumber}
+              setQNumber={setQNumber}
             />
           </div>
         ))}

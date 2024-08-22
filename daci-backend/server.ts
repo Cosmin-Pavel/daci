@@ -397,6 +397,61 @@ async function gameWorker(room: RoomInterface, deckId: string, io: Socket) {
   }
 }
 
+// app.post("/api/initializeGame", async (req: Request, res: Response) => {
+//   const { roomId, username } = req.body;
+
+//   try {
+//     const response = await axios.get(
+//       "https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1"
+//     );
+
+//     const deckId: string = response.data.deck_id;
+
+//     try {
+//       const room: RoomInterface | null = await Room.findOne({ roomId: roomId });
+
+//       if (!room) return res.status(404).json({ message: "Room not found" });
+
+//       room.deckId = deckId;
+//       room.gameState = "seeCards";
+
+//       // Draw cards for each player
+//       const drawPromises = room.players.map(async (player: Player) => {
+//         try {
+//           const response = await axios.get(
+//             `https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
+//           );
+
+//           const cardCodes = response.data.cards.map((card: any) => card.code);
+//           player.cards = cardCodes;
+//         } catch (error) {
+//           console.error("Error drawing cards:", error);
+//           res.status(500).json({ message: "Error drawing cards" });
+//         }
+//       });
+//       if (username === room?.players?.[0].username)
+//         // Start the worker function before drawing cards for the players
+//         gameWorker(room, deckId, io);
+//       // Wait for all draw operations to complete
+//       await Promise.all(drawPromises);
+
+//       // Save room with updated player cards
+//       await room.save();
+
+//       res.status(200).json({
+//         message: "Game initialized successfully",
+//         playersArray: room.players,
+//       });
+//     } catch (error) {
+//       console.error("Error initializing deck:", error);
+//       res.status(500).json({ message: "Error initializing deck" });
+//     }
+//   } catch (error) {
+//     console.error("Error initializing game:", error);
+//     res.status(500).json({ error: "Failed to initialize game" });
+//   }
+// });
+
 app.post("/api/initializeGame", async (req: Request, res: Response) => {
   const { roomId, username } = req.body;
 
@@ -416,22 +471,33 @@ app.post("/api/initializeGame", async (req: Request, res: Response) => {
       room.gameState = "seeCards";
 
       // Draw cards for each player
-      const drawPromises = room.players.map(async (player: Player) => {
-        try {
-          const response = await axios.get(
-            `https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
-          );
+      const drawPromises = room.players.map(
+        async (player: Player, index: number) => {
+          try {
+            const response = await axios.get(
+              `https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
+            );
 
-          const cardCodes = response.data.cards.map((card: any) => card.code);
-          player.cards = cardCodes;
-        } catch (error) {
-          console.error("Error drawing cards:", error);
-          res.status(500).json({ message: "Error drawing cards" });
+            let cardCodes = response.data.cards.map((card: any) => card.code);
+
+            // If it's the first player, ensure the last card is "Q"
+            if (index === 0) {
+              cardCodes[cardCodes.length - 1] = "QH"; // "QH" stands for Queen of Hearts, for example
+            }
+
+            player.cards = cardCodes;
+          } catch (error) {
+            console.error("Error drawing cards:", error);
+            res.status(500).json({ message: "Error drawing cards" });
+          }
         }
-      });
-      if (username === room?.players?.[0].username)
+      );
+
+      if (username === room?.players?.[0].username) {
         // Start the worker function before drawing cards for the players
         gameWorker(room, deckId, io);
+      }
+
       // Wait for all draw operations to complete
       await Promise.all(drawPromises);
 

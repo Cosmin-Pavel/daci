@@ -32,6 +32,8 @@ const GameRoom: React.FC<GameRoomProps> = ({ images }: GameRoomProps) => {
   );
   const [daciPlayer, setDaciPlayer] = useState<string>();
   const [endGame, setEndGame] = useState<boolean>(false);
+  const [qAction, setQAction] = useState<boolean>(false);
+  const [qNumber, setQNumber] = useState<number>(0);
 
   const { socket } = useSocketContext();
 
@@ -102,9 +104,14 @@ const GameRoom: React.FC<GameRoomProps> = ({ images }: GameRoomProps) => {
     <div>
       {roomData.players && (
         <PlayersNav
+          roomId={roomData.roomId}
           players={roomData.players}
           images={images}
           gameState={gameState}
+          qAction={qAction}
+          setQAction={setQAction}
+          qNumber={qNumber}
+          setQNumber={setQNumber}
         />
       )}
       {instructions && <p>{instructions}</p>}
@@ -113,6 +120,9 @@ const GameRoom: React.FC<GameRoomProps> = ({ images }: GameRoomProps) => {
           roomId={roomData.roomId}
           username={username}
           gameState={gameState}
+          setQAction={setQAction}
+          qNumber={qNumber}
+          setQNumber={setQNumber}
         />
       )}
       {ready ? (
@@ -121,6 +131,10 @@ const GameRoom: React.FC<GameRoomProps> = ({ images }: GameRoomProps) => {
             username={username}
             roomId={roomData.roomId}
             gameState={gameState}
+            qAction={qAction}
+            setQAction={setQAction}
+            qNumber={qNumber}
+            setQNumber={setQNumber}
           />
         )
       ) : (

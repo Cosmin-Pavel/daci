@@ -8,15 +8,30 @@ interface TableProps {
   roomId: string;
   username: string;
   gameState: string;
+  setQAction: (value: boolean) => void;
+  qNumber: number;
+  setQNumber: (value: number) => void;
 }
 
 interface CardType {
   card: string;
 }
 
-const Table = ({ roomId, username, gameState }: TableProps) => {
+const Table = ({
+  roomId,
+  username,
+  gameState,
+  setQAction,
+  qNumber,
+  setQNumber,
+}: TableProps) => {
+  const checkIfQ = (card: string) => {
+    if (card.charAt(0) === "Q") {
+      setQAction(true);
+      setQNumber(qNumber + 1);
+    }
+  };
   const { socket } = useSocketContext();
-
   const [downCard, setDownCard] = useState("/blue.svg");
   const [canClick, setCanClick] = useState(true);
   const [canDrop, setCanDrop] = useState(false);
@@ -35,6 +50,7 @@ const Table = ({ roomId, username, gameState }: TableProps) => {
               username: username,
               roomId: roomId,
             });
+            checkIfQ(item.card);
             setCanDrop(false);
             setCanPressDaci(true);
           }
